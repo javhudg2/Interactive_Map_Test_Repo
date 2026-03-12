@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+    <title>Custom Dashboard Search Widget</title>
+
+    <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css" />
+    <script src="https://js.arcgis.com/4.28/"></script>
+
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+            width: 100%;
+            height: 100%;
+            background-color: transparent; /* Remove Background */
+            overflow: hidden;
+        }
+        #searchDiv {
+            width: 100%;
+            padding: 2px;
+        }
+        /* Match Search Bar to Dashboard Color */
+        .esri-search {
+            width: 100%;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div id="searchDiv"></div>
+
+    <script>
+        require([
+            "esri/widgets/Search",
+            "esri/layers/FeatureLayer"
+        ], (Search, FeatureLayer) => {
+
+            // Define your private Feature Layer
+            const privateLayer = new FeatureLayer({
+                portalItem: {
+                    id: "LAYER_ITEM_ID_HERE" // Insert Layer ID
+                }
+            });
+
+            // Initialize Search Widget
+            const searchWidget = new Search({
+                container: "searchDiv",
+                includeDefaultSources: false, // Set to true if address should be included
+                sources: [{
+                    layer: privateLayer,
+                    searchFields: ["AssetID", "Name"], // Field Names
+                    displayField: "Name",            // Display Field Names on Dropdown
+                    exactMatch: false,
+                    outFields: ["*"],
+                    name: "Internal Assets",
+                    placeholder: "Find an asset..."
+                }]
+            });
+
+            // Communicating with Dashboard
+            searchWidget.on("select-result", (event) => {
+                const feature = event.result.feature;
+                const searchID = feature.attributes.AssetID; // Unique ID Fields
+
+                // Get the current URL of the Dashboard (the parent window)
+                const parentUrl = new URL(window.parent.location.href);
+                
+                // Set URL Parameter
+                // Ensure Dashboard "URL Parameter" Name matches 'asset'
+                parentUrl.searchParams.set('asset', searchID);
+
+                // Update Dashboard URL
+                window.parent.location.replace(parentUrl.href);
+            });
+        });
+    </script>
+</body>
+</html>

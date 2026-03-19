@@ -27,7 +27,6 @@
             background: white;
             z-index: 10;
         }
-        /* This hides the default ArcGIS dropdown suggestions entirely */
         .esri-search__suggestions-menu {
             display: none !important;
         }
@@ -53,17 +52,15 @@
             color: #005e95;
         }
     </style>
-
 </head>
-
 <body>
     <div id="searchDiv"></div>
     <div id="listContainer"></div>
 
     <script>
         require([
-            "esri/widgets/Search", // !!!
-            "esri/layers/FeatureLayer" // !!! What do these do?
+            "esri/widgets/Search",
+            "esri/layers/FeatureLayer"
         ], (Search, FeatureLayer) => {
 
             const privateLayer = new FeatureLayer({
@@ -90,7 +87,6 @@
                 }]
             });
 
-            // Reusable filtering function
             const filterTheList = (value) => {
                 const filterText = (value || "").toLowerCase();
                 const listItems = document.querySelectorAll(".list-item");
@@ -108,7 +104,7 @@
 
                 privateLayer.queryFeatures(query).then((results) => {
                     const container = document.getElementById("listContainer");
-                    container.innerHTML = ""; // Clear existing
+                    container.innerHTML = ""; 
                     
                     const sortedFeatures = results.features.sort((a, b) => {
                         const nameA = (a.attributes.Name || "").toUpperCase();
@@ -122,6 +118,7 @@
                         item.className = "list-item";
                         item.innerText = attr.Name || "Unnamed Asset";
 
+                        // UPDATED ONCLICK LOGIC
                         item.onclick = () => {
                             const searchID = attr.OBJECTID || attr.objectid;
                             
@@ -145,21 +142,20 @@
                 });
             };
 
-            searchWidget.on("post", () =>  {
+            searchWidget.on("post", () => {
                 const input = document.querySelector(".esri-search__input");
-                input.addEventListener("input", (e) => {
-                    filterTheList(e.target.value);
-                });
+                if (input) {
+                    input.addEventListener("input", (e) => {
+                        filterTheList(e.target.value);
+                    });
+                }
             });
 
-            // 2. Listen for "Enter" or "Search Button" click
             searchWidget.on("search-complete", () => {
                 filterTheList(searchWidget.searchTerm);
             });
             
             searchWidget.on("search-start", (event) => {
-                // We stop the search from zooming the map automatically
-                // and just use the term to filter our list.
                 filterTheList(searchWidget.searchTerm);
             });
 

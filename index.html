@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-    <title>Custom Dashboard Search Widget</title>
+    <title>Custom Dashboard Filter Search</title>
 
     <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css" />
     <script src="https://js.arcgis.com/4.28/"></script>
@@ -15,7 +15,6 @@
             width: 100%;
             height: 100%;
             background-color: transparent;
-            /* Changed overflow to 'auto' to allow the list to scroll if needed */
             overflow-x: hidden;
             overflow-y: auto;
             font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -23,7 +22,7 @@
         #searchDiv {
             width: 100%;
             padding: 2px;
-            position: sticky; /* Keeps the search bar at the top while scrolling */
+            position: sticky;
             top: 0;
             background: white;
             z-index: 10;
@@ -33,8 +32,6 @@
             box-shadow: none;
             border: 1px solid #ccc;
         }
-
-        /* Styles for the Attribute List */
         #listContainer {
             margin-top: 5px;
             width: 100%;
@@ -55,22 +52,27 @@
 </head>
 <body>
     <div id="searchDiv"></div>
-    <div id="listContainer"></div> <script>
+    <div id="listContainer"></div>
+
+    <script>
         require([
             "esri/widgets/Search",
             "esri/layers/FeatureLayer"
         ], (Search, FeatureLayer) => {
 
+            // 1. Define Layer
             const privateLayer = new FeatureLayer({
                 portalItem: {
                     id: "a215e921fa0d4b3f88c40210c0a9eee7"
                 }
             });
 
+            // 2. Initialize Search Widget as a Filter Input
             const searchWidget = new Search({
                 container: "searchDiv",
                 includeDefaultSources: false,
-                allPlaceholder: "Find an asset",
+                popupEnabled: false, // Disables the map popup
+                resultGraphicEnabled: false, // Disables the selection graphic
                 activeSourceIndex: 0,
                 sources: [{
                     layer: privateLayer,
@@ -79,21 +81,19 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search..."
+                    placeholder: "Type to filter list..."
                 }]
             });
 
-            // --- Function to build the alphabetical list ---
+            // 3. Build the Alphabetical List
             const buildList = () => {
                 const query = privateLayer.createQuery();
-                query.outFields = ["Name", "objectid"]; // Adjust 'objectid' casing if needed
-                query.returnGeometry = false;
-                query.where = "1=1"; // Gets all records
+                query.outFields = ["Name", "objectid"];
+                query.where = "1=1";
 
                 privateLayer.queryFeatures(query).then((results) => {
                     const container = document.getElementById("listContainer");
                     
-                    // Sort the features alphabetically by the 'Name' attribute
                     const sortedFeatures = results.features.sort((a, b) => {
                         const nameA = (a.attributes.Name || "").toUpperCase();
                         const nameB = (b.attributes.Name || "").toUpperCase();
@@ -106,8 +106,9 @@
                         item.className = "list-item";
                         item.innerText = attr.Name || "Unnamed Asset";
 
+                        // Handle item click to update Dashboard
                         item.onclick = () => {
-                            const searchID = attr.objectid; // Ensure this matches your ID field name
+                            const searchID = attr.objectid;
                             const parentUrl = new URL(window.parent.location.href);
                             parentUrl.searchParams.set('asset', searchID);
                             window.parent.location.replace(parentUrl.href);
@@ -115,24 +116,27 @@
 
                         container.appendChild(item);
                     });
-                }).catch((err) => {
-                    console.error("Error building list: ", err);
                 });
             };
 
-            // Run the list builder once the layer metadata has loaded
-            privateLayer.load().then(() => {
-                buildList();
+            // 4. Filter Logic: Listen to search bar typing
+            searchWidget.on("value-change", (event) => {
+                const filterText = (event.value || "").toLowerCase();
+                const listItems = document.querySelectorAll(".list-item");
+
+                listItems.forEach((item) => {
+                    const text = item.innerText.toLowerCase();
+                    // If the item name contains the typed text, show it; otherwise hide it.
+                    if (text.includes(filterText)) {
+                        item.style.display = "block";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
             });
 
-            // Handle standard search results
-            searchWidget.on("select-result", (event) => {
-                const feature = event.result.feature;
-                const searchID = feature.attributes.objectid;
-                const parentUrl = new URL(window.parent.location.href);
-                parentUrl.searchParams.set('asset', searchID);
-                window.parent.location.replace(parentUrl.href);
-            });
+            // Load layer and build list
+            privateLayer.load().then(buildList);
         });
     </script>
 </body>

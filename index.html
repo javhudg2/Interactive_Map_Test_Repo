@@ -51,7 +51,10 @@
                 includeDefaultSources: false, // Set to true if address should be included
                 sources: [{
                     layer: privateLayer,
-                    searchFields: ["Name", "Building_T", "Official/Long", "Abbrev/Short"], // Field Names that can be searched.
+                    searchFields: 
+                        [
+                            "Name", "Building_T", "Official/Long", "Abbrev/Short"
+                        ], // Field Names that can be searched.
                     displayField: "Name",            // Display Field Names on Dropdown
                     exactMatch: false,
                     outFields: ["*"],

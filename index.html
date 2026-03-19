@@ -14,50 +14,68 @@
             margin: 0;
             width: 100%;
             height: 100%;
-            background-color: transparent; /* Remove Background to match AGIS Dashboard */
-            overflow: hidden;
+            background-color: transparent;
+            /* Changed overflow to 'auto' to allow the list to scroll if needed */
+            overflow-x: hidden;
+            overflow-y: auto;
+            font-family: "Avenir Next", "Helvetica Neue", Helvetica, Arial, sans-serif;
         }
         #searchDiv {
             width: 100%;
             padding: 2px;
+            position: sticky; /* Keeps the search bar at the top while scrolling */
+            top: 0;
+            background: white;
+            z-index: 10;
         }
-        /* Match Search Bar to Dashboard Color */
         .esri-search {
             width: 100%;
             box-shadow: none;
             border: 1px solid #ccc;
         }
+
+        /* Styles for the Attribute List */
+        #listContainer {
+            margin-top: 5px;
+            width: 100%;
+        }
+        .list-item {
+            padding: 10px 15px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            font-size: 14px;
+            color: #323232;
+            transition: background 0.2s;
+        }
+        .list-item:hover {
+            background-color: #f3f3f3;
+            color: #005e95;
+        }
     </style>
 </head>
 <body>
     <div id="searchDiv"></div>
-
-    <script>
+    <div id="listContainer"></div> <script>
         require([
             "esri/widgets/Search",
             "esri/layers/FeatureLayer"
         ], (Search, FeatureLayer) => {
 
-            // Define your private Feature Layer
             const privateLayer = new FeatureLayer({
                 portalItem: {
-                    id: "a215e921fa0d4b3f88c40210c0a9eee7" // Insert Layer ID. Default String = "LAYER_ITEM_ID_HERE"
+                    id: "a215e921fa0d4b3f88c40210c0a9eee7"
                 }
             });
 
-            // Initialize Search Widget
             const searchWidget = new Search({
                 container: "searchDiv",
-                includeDefaultSources: false, // Set to true if address should be included
-                allPlaceholder: "Find an asset", // ???
-                activeSourceIndex: 0,               // Force use private layer immediately
+                includeDefaultSources: false,
+                allPlaceholder: "Find an asset",
+                activeSourceIndex: 0,
                 sources: [{
                     layer: privateLayer,
-                    searchFields: 
-                    [
-                        "Name", "Building_T", "Official_Long", "Abbrev_Short"
-                    ], // Field Names that can be searched.
-                    displayField: "Name",            // Display Field Names on Dropdown
+                    searchFields: ["Name", "Building_T", "Official_Long", "Abbrev_Short"],
+                    displayField: "Name",
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
@@ -65,19 +83,54 @@
                 }]
             });
 
-            // Communicating with Dashboard
+            // --- Function to build the alphabetical list ---
+            const buildList = () => {
+                const query = privateLayer.createQuery();
+                query.outFields = ["Name", "objectid"]; // Adjust 'objectid' casing if needed
+                query.returnGeometry = false;
+                query.where = "1=1"; // Gets all records
+
+                privateLayer.queryFeatures(query).then((results) => {
+                    const container = document.getElementById("listContainer");
+                    
+                    // Sort the features alphabetically by the 'Name' attribute
+                    const sortedFeatures = results.features.sort((a, b) => {
+                        const nameA = (a.attributes.Name || "").toUpperCase();
+                        const nameB = (b.attributes.Name || "").toUpperCase();
+                        return nameA.localeCompare(nameB);
+                    });
+
+                    sortedFeatures.forEach((feature) => {
+                        const attr = feature.attributes;
+                        const item = document.createElement("div");
+                        item.className = "list-item";
+                        item.innerText = attr.Name || "Unnamed Asset";
+
+                        item.onclick = () => {
+                            const searchID = attr.objectid; // Ensure this matches your ID field name
+                            const parentUrl = new URL(window.parent.location.href);
+                            parentUrl.searchParams.set('asset', searchID);
+                            window.parent.location.replace(parentUrl.href);
+                        };
+
+                        container.appendChild(item);
+                    });
+                }).catch((err) => {
+                    console.error("Error building list: ", err);
+                });
+            };
+
+            // Run the list builder once the layer metadata has loaded
+            privateLayer.load().then(() => {
+                buildList();
+            });
+
+            // Handle standard search results
             searchWidget.on("select-result", (event) => {
                 const feature = event.result.feature;
-                const searchID = feature.attributes.objectid; // Unique ID Values (See row 1 of Attributes.)
-
-                // Get the current URL of the Dashboard (the parent window)
+                const searchID = feature.attributes.objectid;
                 const parentUrl = new URL(window.parent.location.href);
-                
-                // Set URL Parameter
-                // Ensure Dashboard "URL Parameter" Name matches 'asset'
                 parentUrl.searchParams.set('asset', searchID);
-
-                // Update Dashboard URL
                 window.parent.location.replace(parentUrl.href);
             });
         });

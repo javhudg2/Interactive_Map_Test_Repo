@@ -123,10 +123,22 @@
                         item.innerText = attr.Name || "Unnamed Asset";
 
                         item.onclick = () => {
-                            const searchID = attr.objectid || attr.OBJECTID;
-                            const parentUrl = new URL(window.parent.location.href);
-                            parentUrl.searchParams.set('asset', searchID);
-                            window.parent.location.replace(parentUrl.href);
+                            const searchID = attr.OBJECTID || attr.objectid;
+                            
+                            if (searchID && document.referrer) {
+                                try {
+                                    // Construct the new URL using the referrer (the Dashboard URL)
+                                    const dashboardUrl = new URL(document.referrer);
+                                    dashboardUrl.searchParams.set('asset', searchID);
+                                    
+                                    // Redirect the parent window to the new URL
+                                    window.parent.location.replace(dashboardUrl.href);
+                                } catch (e) {
+                                    console.error("URL Parsing Error:", e);
+                                }
+                            } else {
+                                console.error("Missing ID or Referrer. ID:", searchID);
+                            }
                         };
                         container.appendChild(item);
                     });

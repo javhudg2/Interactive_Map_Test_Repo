@@ -27,6 +27,10 @@
             background: white;
             z-index: 10;
         }
+        /* This hides the default ArcGIS dropdown suggestions entirely */
+        .esri-search__suggestions-menu {
+            display: none !important;
+        }
         .esri-search {
             width: 100%;
             box-shadow: none;
@@ -60,20 +64,19 @@
             "esri/layers/FeatureLayer"
         ], (Search, FeatureLayer) => {
 
-            // 1. Define Layer
             const privateLayer = new FeatureLayer({
                 portalItem: {
                     id: "a215e921fa0d4b3f88c40210c0a9eee7"
                 }
             });
 
-            // 2. Initialize Search Widget as a Filter Input
             const searchWidget = new Search({
                 container: "searchDiv",
                 includeDefaultSources: false,
-                popupEnabled: false, // Disables the map popup
-                resultGraphicEnabled: false, // Disables the selection graphic
-                activeSourceIndex: 0,
+                popupEnabled: false,
+                resultGraphicEnabled: false,
+                suggestionsEnabled: false, // Disables the dropdown menu
+                autoSelect: false,          // Prevents automatic selection/zooming
                 sources: [{
                     layer: privateLayer,
                     searchFields: ["Name", "Building_T", "Official_Long", "Abbrev_Short"],
@@ -85,7 +88,17 @@
                 }]
             });
 
-            // 3. Build the Alphabetical List
+            // Reusable filtering function
+            const filterTheList = (value) => {
+                const filterText = (value || "").toLowerCase();
+                const listItems = document.querySelectorAll(".list-item");
+
+                listItems.forEach((item) => {
+                    const text = item.innerText.toLowerCase();
+                    item.style.display = text.includes(filterText) ? "block" : "none";
+                });
+            };
+
             const buildList = () => {
                 const query = privateLayer.createQuery();
                 query.outFields = ["Name", "objectid"];
@@ -93,6 +106,7 @@
 
                 privateLayer.queryFeatures(query).then((results) => {
                     const container = document.getElementById("listContainer");
+                    container.innerHTML = ""; // Clear existing
                     
                     const sortedFeatures = results.features.sort((a, b) => {
                         const nameA = (a.attributes.Name || "").toUpperCase();
@@ -106,36 +120,34 @@
                         item.className = "list-item";
                         item.innerText = attr.Name || "Unnamed Asset";
 
-                        // Handle item click to update Dashboard
                         item.onclick = () => {
                             const searchID = attr.objectid;
                             const parentUrl = new URL(window.parent.location.href);
                             parentUrl.searchParams.set('asset', searchID);
                             window.parent.location.replace(parentUrl.href);
                         };
-
                         container.appendChild(item);
                     });
                 });
             };
 
-            // 4. Filter Logic: Listen to search bar typing
+            // 1. Listen for typing (Live Filter)
             searchWidget.on("value-change", (event) => {
-                const filterText = (event.value || "").toLowerCase();
-                const listItems = document.querySelectorAll(".list-item");
-
-                listItems.forEach((item) => {
-                    const text = item.innerText.toLowerCase();
-                    // If the item name contains the typed text, show it; otherwise hide it.
-                    if (text.includes(filterText)) {
-                        item.style.display = "block";
-                    } else {
-                        item.style.display = "none";
-                    }
-                });
+                filterTheList(event.value);
             });
 
-            // Load layer and build list
+            // 2. Listen for "Enter" or "Search Button" click
+            searchWidget.on("search-complete", () => {
+                filterTheList(searchWidget.searchTerm);
+            });
+            
+            // 3. Prevent the widget from doing its own thing on "Search"
+            searchWidget.on("search-start", (event) => {
+                // We stop the search from zooming the map automatically
+                // and just use the term to filter our list.
+                filterTheList(searchWidget.searchTerm);
+            });
+
             privateLayer.load().then(buildList);
         });
     </script>

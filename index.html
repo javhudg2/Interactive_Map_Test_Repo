@@ -49,6 +49,8 @@
             const searchWidget = new Search({
                 container: "searchDiv",
                 includeDefaultSources: false, // Set to true if address should be included
+                allPlaceholder: "Find an asset", // ???
+                activeSourceIndex: 0,               // Force use private layer immediately
                 sources: [{
                     layer: privateLayer,
                     searchFields: 
@@ -59,14 +61,14 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Find an asset..."
+                    placeholder: "Search..."
                 }]
             });
 
             // Communicating with Dashboard
             searchWidget.on("select-result", (event) => {
                 const feature = event.result.feature;
-                const searchID = feature.attributes.OBJECTID; // Unique ID Values (See row 1 of Attributes.)
+                const searchID = feature.attributes.objectid; // Unique ID Values (See row 1 of Attributes.)
 
                 // Get the current URL of the Dashboard (the parent window)
                 const parentUrl = new URL(window.parent.location.href);

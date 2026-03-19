@@ -53,15 +53,17 @@
             color: #005e95;
         }
     </style>
+
 </head>
+
 <body>
     <div id="searchDiv"></div>
     <div id="listContainer"></div>
 
     <script>
         require([
-            "esri/widgets/Search",
-            "esri/layers/FeatureLayer"
+            "esri/widgets/Search", // !!!
+            "esri/layers/FeatureLayer" // !!! What do these do?
         ], (Search, FeatureLayer) => {
 
             const privateLayer = new FeatureLayer({
@@ -75,8 +77,8 @@
                 includeDefaultSources: false,
                 popupEnabled: false,
                 resultGraphicEnabled: false,
-                suggestionsEnabled: false, // Disables the dropdown menu
-                autoSelect: false,          // Prevents automatic selection/zooming
+                suggestionsEnabled: false, 
+                autoSelect: false,          
                 sources: [{
                     layer: privateLayer,
                     searchFields: ["Name", "Building_T", "Official_Long", "Abbrev_Short"],
@@ -84,7 +86,7 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Type to filter list..."
+                    placeholder: "Search..."
                 }]
             });
 
@@ -101,7 +103,7 @@
 
             const buildList = () => {
                 const query = privateLayer.createQuery();
-                query.outFields = ["Name", "objectid"];
+                query.outFields = ["Name", "OBJECTID"];
                 query.where = "1=1";
 
                 privateLayer.queryFeatures(query).then((results) => {
@@ -121,7 +123,7 @@
                         item.innerText = attr.Name || "Unnamed Asset";
 
                         item.onclick = () => {
-                            const searchID = attr.objectid;
+                            const searchID = attr.objectid || attr.OBJECTID;
                             const parentUrl = new URL(window.parent.location.href);
                             parentUrl.searchParams.set('asset', searchID);
                             window.parent.location.replace(parentUrl.href);
@@ -131,9 +133,11 @@
                 });
             };
 
-            // 1. Listen for typing (Live Filter)
-            searchWidget.on("value-change", (event) => {
-                filterTheList(event.value);
+            searchWidget.on("post", () =>  {
+                const input = document.querySelector(".esri-search__input");
+                input.addEventListener("input", (e) => {
+                    filterTheList(e.target.value);
+                });
             });
 
             // 2. Listen for "Enter" or "Search Button" click
@@ -141,7 +145,6 @@
                 filterTheList(searchWidget.searchTerm);
             });
             
-            // 3. Prevent the widget from doing its own thing on "Search"
             searchWidget.on("search-start", (event) => {
                 // We stop the search from zooming the map automatically
                 // and just use the term to filter our list.

@@ -41,7 +41,7 @@
             // Define your private Feature Layer
             const privateLayer = new FeatureLayer({
                 portalItem: {
-                    id: "6203ab53a7e1434cb429f3df46e35957" // Insert Layer ID. Default String = "LAYER_ITEM_ID_HERE"
+                    id: "a215e921fa0d4b3f88c40210c0a9eee7" // Insert Layer ID. Default String = "LAYER_ITEM_ID_HERE"
                 }
             });
 
@@ -52,14 +52,14 @@
                 sources: [{
                     layer: privateLayer,
                     searchFields: 
-                        [
-                            "Name", "Building_T", "Official/Long", "Abbrev/Short"
-                        ], // Field Names that can be searched.
+                    [
+                        "Name", "Building_T", "Official/Long", "Abbrev/Short"
+                    ], // Field Names that can be searched.
                     displayField: "Name",            // Display Field Names on Dropdown
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for an asset..."
+                    placeholder: "Find an asset..."
                 }]
             });
 

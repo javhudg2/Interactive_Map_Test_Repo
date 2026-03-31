@@ -79,11 +79,11 @@
                 sources: [{
                     layer: privateLayer,
                     searchFields: ["Abbrv_Name", "Asset_Name", "Bld_Type"],
-                    displayField: "Abbrv_Name",
+                    displayField: "Asset_Name",
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for a feature..."
+                    placeholder: "Search for an asset..."
                 }]
             });
 
@@ -99,7 +99,7 @@
 
             const buildList = () => {
                 const query = privateLayer.createQuery();
-                query.outFields = ["Abbrv_Name", "OBJECTID"];
+                query.outFields = ["Asset_Name", "Id"];
                 query.where = "1=1";
 
                 privateLayer.queryFeatures(query).then((results) => {
@@ -107,8 +107,8 @@
                     container.innerHTML = ""; 
                     
                     const sortedFeatures = results.features.sort((a, b) => {
-                        const nameA = (a.attributes.Abbrv_Name || "").toUpperCase();
-                        const nameB = (b.attributes.Abbrv_Name || "").toUpperCase();
+                        const nameA = (a.attributes.Asset_Name || "").toUpperCase();
+                        const nameB = (b.attributes.Asset_Name || "").toUpperCase();
                         return nameA.localeCompare(nameB);
                     });
 
@@ -116,11 +116,11 @@
                         const attr = feature.attributes;
                         const item = document.createElement("div");
                         item.className = "list-item";
-                        item.innerText = attr.Abbrv_Name || "Unnamed Asset";
+                        item.innerText = attr.Asset_Name || "Unnamed Asset";
 
                         // UPDATED ONCLICK LOGIC
                         item.onclick = () => {
-                            const searchID = attr.OBJECTID || attr.objectid;
+                            const searchID = attr.Id || attr.id;
                             
                             if (searchID && document.referrer) {
                                 try {

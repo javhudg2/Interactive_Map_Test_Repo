@@ -99,7 +99,7 @@
 
             const buildList = () => {
                 const query = privateLayer.createQuery();
-                query.outFields = ["Name", "OBJECTID"];
+                query.outFields = ["Abbrv_Name", "OBJECTID"];
                 query.where = "1=1";
 
                 privateLayer.queryFeatures(query).then((results) => {
@@ -107,8 +107,8 @@
                     container.innerHTML = ""; 
                     
                     const sortedFeatures = results.features.sort((a, b) => {
-                        const nameA = (a.attributes.Name || "").toUpperCase();
-                        const nameB = (b.attributes.Name || "").toUpperCase();
+                        const nameA = (a.attributes.Abbrv_Name || "").toUpperCase();
+                        const nameB = (b.attributes.Abbrv_Name || "").toUpperCase();
                         return nameA.localeCompare(nameB);
                     });
 
@@ -116,7 +116,7 @@
                         const attr = feature.attributes;
                         const item = document.createElement("div");
                         item.className = "list-item";
-                        item.innerText = attr.Name || "Unnamed Asset";
+                        item.innerText = attr.Abbrv_Name || "Unnamed Asset";
 
                         // UPDATED ONCLICK LOGIC
                         item.onclick = () => {

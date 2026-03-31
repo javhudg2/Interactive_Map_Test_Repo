@@ -65,7 +65,7 @@
 
             const privateLayer = new FeatureLayer({
                 portalItem: {
-                    id: "a215e921fa0d4b3f88c40210c0a9eee7"
+                    id: "877e842b582840228028c83e6793522a"
                 }
             });
 
@@ -78,12 +78,12 @@
                 autoSelect: false,          
                 sources: [{
                     layer: privateLayer,
-                    searchFields: ["Name", "Building_T", "Official_Long", "Abbrev_Short"],
-                    displayField: "Name",
+                    searchFields: ["Abbrv_Name", "Asset_Name", "Bld_Type"],
+                    displayField: "Abbrv_Name",
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search..."
+                    placeholder: "Search for a feature..."
                 }]
             });
 

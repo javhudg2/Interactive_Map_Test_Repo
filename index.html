@@ -46,7 +46,7 @@
             font-size: 14px;
             color: #323232;
             transition: background 0.2s;
-            display: block;
+            display: block; /* Back to block div */
         }
         .list-item:hover {
             background-color: #f3f3f3;
@@ -84,7 +84,7 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for an asset..."
+                    placeholder: "Search for a feature..."
                 }]
             });
 
@@ -117,17 +117,16 @@
                         const attr = feature.attributes;
                         const searchID = attr.Id || attr.id;
                         
+                        // Use a DIV instead of an A tag to avoid navigation errors
                         const item = document.createElement("div");
                         item.className = "list-item";
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
 
                         item.onclick = (e) => {
-                            e.preventDefault();
                             if (searchID) {
-                                console.log("Broadcasting Internal Selection for ID:", searchID);
+                                console.log("Selecting ID:", searchID);
 
-                                // The 'selection-change' message is the "Native" way to talk
-                                // to the Dashboard when the Embedded Content type is 'Features'.
+                                // Send selection-change for the 'Features' type element
                                 window.parent.postMessage({
                                     type: "selection-change",
                                     selection: [{
@@ -137,7 +136,7 @@
                                     }]
                                 }, "*");
 
-                                // We also keep the parameter change as a backup
+                                // Send parameter-change for your 'asset' URL parameter
                                 window.parent.postMessage({
                                     type: "parameter-change",
                                     parameterName: "asset",
@@ -151,6 +150,7 @@
                 });
             };
 
+            // ... (rest of searchWidget listeners remain the same)
             searchWidget.on("post", () => {
                 const input = document.querySelector(".esri-search__input");
                 if (input) {

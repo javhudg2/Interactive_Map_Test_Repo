@@ -124,26 +124,25 @@
                         item.onclick = (e) => {
                             e.preventDefault();
                             if (searchID) {
-                                console.log("Broadcasting to all possible listeners for ID:", searchID);
+                                console.log("Broadcasting ID:", searchID);
 
-                                // 1. Standard Dashboard Parameter signal
+                                // 1. Tell the Dashboard the URL Parameter 'asset' has changed
                                 window.parent.postMessage({
                                     type: "parameter-change",
                                     parameterName: "asset",
-                                    parameterValue: searchID
+                                    parameterValue: Number(searchID)
                                 }, "*");
 
-                                // 2. Feature Selection signal (for when Type is 'Features')
+                                // 2. Tell the Dashboard a Feature has been 'Selected'
+                                // We include both ID and OBJECTID to cover all bases
                                 window.parent.postMessage({
                                     type: "selection-change",
-                                    selection: [{ 
-                                        attributes: { OBJECTID: searchID, Id: searchID } 
+                                    selection: [{
+                                        attributes: { 
+                                            Id: searchID,
+                                            OBJECTID: searchID 
+                                        }
                                     }]
-                                }, "*");
-                                
-                                // 3. Asset-specific signal
-                                window.parent.postMessage({
-                                    asset: searchID
                                 }, "*");
                             }
                         };

@@ -84,7 +84,7 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for a feature..."
+                    placeholder: "Search..."
                 }]
             });
 
@@ -124,23 +124,28 @@
 
                         item.onclick = (e) => {
                             if (searchID) {
-                                console.log("Selecting ID:", searchID);
+                                console.log("Sending Selection for ID:", searchID);
 
-                                // Send selection-change for the 'Features' type element
+                                const idNum = Number(searchID);
+
                                 window.parent.postMessage({
                                     type: "selection-change",
                                     selection: [{
                                         attributes: { 
-                                            Id: Number(searchID) 
+                                            // Send both to cover all possible listener configurations
+                                            Id: idNum,
+                                            id: idNum,
+                                            OBJECTID: idNum, 
+                                            FID: idNum
                                         }
                                     }]
                                 }, "*");
 
-                                // Send parameter-change for your 'asset' URL parameter
+                                // Keep this as the secondary trigger for the URL Parameter
                                 window.parent.postMessage({
                                     type: "parameter-change",
                                     parameterName: "asset",
-                                    parameterValue: Number(searchID)
+                                    parameterValue: idNum
                                 }, "*");
                             }
                         };

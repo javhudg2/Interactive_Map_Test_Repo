@@ -122,17 +122,17 @@
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
 
                         item.onclick = (e) => {
-                            // 1. Prevent any default browser behavior
+                            // Prevent any default browser behavior.
                             e.preventDefault(); 
 
                             if (searchID) {
                                 console.log("Sending signal for ID:", searchID);
 
-                                // 2. The postMessage is the safest way to talk to the dashboard
-                                // We use "*" to bypass origin checks while we're debugging
+                                // postMessage is the safest way to talk to the dashboard; bypasses sandboxing
                                 window.parent.postMessage({
-                                    type: "dashboard-parameter",
-                                    asset: searchID 
+                                    type: "parameter-change", // Change from 'dashboard-parameter' to 'parameter-change'
+                                    parameterName: "asset",
+                                    parameterValue: searchID
                                 }, "*");
                             }
                         };

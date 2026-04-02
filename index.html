@@ -99,6 +99,7 @@
 
             const buildList = () => {
                 const query = privateLayer.createQuery();
+                // Ensure we are pulling the ID field correctly
                 query.outFields = ["Asset_Name", "Id"];
                 query.where = "1=1";
 
@@ -114,29 +115,37 @@
 
                     sortedFeatures.forEach((feature) => {
                         const attr = feature.attributes;
-                        const item = document.createElement("div");
+                        const searchID = attr.Id || attr.id;
+                        
+                        // 1. Create an anchor tag instead of a div
+                        const item = document.createElement("a");
                         item.className = "list-item";
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
+                        
+                        // 2. Style it to look like your original list items
+                        item.style.display = "block";
+                        item.style.textDecoration = "none";
+                        item.style.color = "inherit";
 
-                        // UPDATED ONCLICK LOGIC
-                        item.onclick = () => {
-                            const searchID = attr.Id || attr.id;
-                            
-                            if (searchID && document.referrer) {
-                                try {
-                                    // Construct the new URL using the referrer (the Dashboard URL)
-                                    const dashboardUrl = new URL(document.referrer);
-                                    dashboardUrl.searchParams.set('asset', searchID);
-                                    
-                                    // Redirect the parent window to the new URL
-                                    window.parent.location.replace(dashboardUrl.href);
-                                } catch (e) {
-                                    console.error("URL Parsing Error:", e);
-                                }
-                            } else {
-                                console.error("Missing ID or Referrer. ID:", searchID);
+                        if (searchID) {
+                            try {
+                                // 3. Get the base URL (referencing your specific dashboard)
+                                // If document.referrer fails, it defaults to your dashboard link
+                                const baseLink = document.referrer || "https://ucmerced.maps.arcgis.com/apps/dashboards/b89bd445e9334900b2f02c4b091612d3";
+                                const dashboardUrl = new URL(baseLink);
+                                
+                                // 4. Set the URL parameters
+                                dashboardUrl.searchParams.set('asset', searchID);
+                                
+                                // 5. The "Magic" attributes
+                                item.href = dashboardUrl.href;
+                                item.target = "_top"; // This tells the browser to navigate the whole page
+                                
+                            } catch (e) {
+                                console.error("URL Construction Error:", e);
                             }
-                        };
+                        }
+
                         container.appendChild(item);
                     });
                 });

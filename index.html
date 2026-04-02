@@ -124,28 +124,21 @@
 
                         item.onclick = (e) => {
                             if (searchID) {
-                                console.log("Sending Selection for ID:", searchID);
-
                                 const idNum = Number(searchID);
+                                console.log("Attempting Hyper-Specific Selection for ID:", idNum);
 
                                 window.parent.postMessage({
                                     type: "selection-change",
+                                    // This 'layerId' is often the missing link. 
+                                    // It is usually the same as your Portal Item ID.
+                                    layerId: "877e842b582840228028c83e6793522a", 
                                     selection: [{
                                         attributes: { 
-                                            // Send both to cover all possible listener configurations
                                             Id: idNum,
-                                            id: idNum,
-                                            OBJECTID: idNum, 
-                                            FID: idNum
+                                            OBJECTID: idNum,
+                                            FID: idNum 
                                         }
                                     }]
-                                }, "*");
-
-                                // Keep this as the secondary trigger for the URL Parameter
-                                window.parent.postMessage({
-                                    type: "parameter-change",
-                                    parameterName: "asset",
-                                    parameterValue: idNum
                                 }, "*");
                             }
                         };

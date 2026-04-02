@@ -83,7 +83,7 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for a feature..."
+                    placeholder: "Search for an asset..."
                 }]
             });
 
@@ -99,7 +99,6 @@
 
             const buildList = () => {
                 const query = privateLayer.createQuery();
-                // Ensure we are pulling the ID field correctly
                 query.outFields = ["Asset_Name", "Id"];
                 query.where = "1=1";
 
@@ -117,35 +116,28 @@
                         const attr = feature.attributes;
                         const searchID = attr.Id || attr.id;
                         
-                        const item = document.createElement("div");
+                        // 1. Create a REAL anchor tag link
+                        const item = document.createElement("a");
                         item.className = "list-item";
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
+                        
+                        // 2. Styling to keep it looking like your dashboard
+                        item.style.display = "block";
+                        item.style.textDecoration = "none";
+                        item.style.color = "inherit";
 
-                        item.onclick = (e) => {
-                            e.preventDefault();
-                            if (searchID) {
-                                console.log("Broadcasting ID:", searchID);
+                        if (searchID) {
+                            // 3. HARDCODE the Dashboard URL here to ensure it works
+                            const dashboardBaseUrl = "https://ucmerced.maps.arcgis.com/apps/dashboards/b89bd445e9334900b2f02c4b091612d3";
+                            
+                            // 4. Construct the link with the parameter
+                            item.href = `${dashboardBaseUrl}?asset=${searchID}`;
+                            
+                            // 5. This is the "Nuclear Option" - it tells the browser to 
+                            // break out of the iframe and reload the whole tab
+                            item.target = "_top"; 
+                        }
 
-                                // 1. Tell the Dashboard the URL Parameter 'asset' has changed
-                                window.parent.postMessage({
-                                    type: "parameter-change",
-                                    parameterName: "asset",
-                                    parameterValue: Number(searchID)
-                                }, "*");
-
-                                // 2. Tell the Dashboard a Feature has been 'Selected'
-                                // We include both ID and OBJECTID to cover all bases
-                                window.parent.postMessage({
-                                    type: "selection-change",
-                                    selection: [{
-                                        attributes: { 
-                                            Id: searchID,
-                                            OBJECTID: searchID 
-                                        }
-                                    }]
-                                }, "*");
-                            }
-                        };
                         container.appendChild(item);
                     });
                 });

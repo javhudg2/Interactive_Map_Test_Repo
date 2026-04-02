@@ -121,16 +121,19 @@
                         item.className = "list-item";
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
 
-                        item.onclick = () => {
-                            if (searchID) {
-                                console.log("Attempting to signal Dashboard for ID:", searchID);
+                        item.onclick = (e) => {
+                            // 1. Prevent any default browser behavior
+                            e.preventDefault(); 
 
-                                // This sends a 'data packet' to the Dashboard.
-                                // Because it's just data, the Sandbox shouldn't block it.
+                            if (searchID) {
+                                console.log("Sending signal for ID:", searchID);
+
+                                // 2. The postMessage is the safest way to talk to the dashboard
+                                // We use "*" to bypass origin checks while we're debugging
                                 window.parent.postMessage({
                                     type: "dashboard-parameter",
                                     asset: searchID 
-                                }, "*"); // Use "*" to ensure it reaches the parent regardless of origin
+                                }, "*");
                             }
                         };
                         container.appendChild(item);

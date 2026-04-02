@@ -46,6 +46,7 @@
             font-size: 14px;
             color: #323232;
             transition: background 0.2s;
+            display: block;
         }
         .list-item:hover {
             background-color: #f3f3f3;
@@ -116,27 +117,34 @@
                         const attr = feature.attributes;
                         const searchID = attr.Id || attr.id;
                         
-                        // 1. Create a REAL anchor tag link
-                        const item = document.createElement("a");
+                        const item = document.createElement("div");
                         item.className = "list-item";
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
-                        
-                        // 2. Styling to keep it looking like your dashboard
-                        item.style.display = "block";
-                        item.style.textDecoration = "none";
-                        item.style.color = "inherit";
 
-                        if (searchID) {
-                            // 3. HARDCODE the Dashboard URL here to ensure it works
-                            const dashboardBaseUrl = "https://ucmerced.maps.arcgis.com/apps/dashboards/b89bd445e9334900b2f02c4b091612d3";
-                            
-                            // 4. Construct the link with the parameter
-                            item.href = `${dashboardBaseUrl}?asset=${searchID}`;
-                            
-                            // 5. This is the "Nuclear Option" - it tells the browser to 
-                            // break out of the iframe and reload the whole tab
-                            item.target = "_top"; 
-                        }
+                        item.onclick = (e) => {
+                            e.preventDefault();
+                            if (searchID) {
+                                console.log("Broadcasting Internal Selection for ID:", searchID);
+
+                                // The 'selection-change' message is the "Native" way to talk
+                                // to the Dashboard when the Embedded Content type is 'Features'.
+                                window.parent.postMessage({
+                                    type: "selection-change",
+                                    selection: [{
+                                        attributes: { 
+                                            Id: Number(searchID) 
+                                        }
+                                    }]
+                                }, "*");
+
+                                // We also keep the parameter change as a backup
+                                window.parent.postMessage({
+                                    type: "parameter-change",
+                                    parameterName: "asset",
+                                    parameterValue: Number(searchID)
+                                }, "*");
+                            }
+                        };
 
                         container.appendChild(item);
                     });

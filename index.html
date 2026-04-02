@@ -83,7 +83,7 @@
                     exactMatch: false,
                     outFields: ["*"],
                     name: "Internal Assets",
-                    placeholder: "Search for an asset..."
+                    placeholder: "Search for a feature..."
                 }]
             });
 
@@ -122,17 +122,28 @@
                         item.innerText = attr.Asset_Name || "Unnamed Asset";
 
                         item.onclick = (e) => {
-                            // Prevent any default browser behavior.
-                            e.preventDefault(); 
-
+                            e.preventDefault();
                             if (searchID) {
-                                console.log("Sending signal for ID:", searchID);
+                                console.log("Broadcasting to all possible listeners for ID:", searchID);
 
-                                // postMessage is the safest way to talk to the dashboard; bypasses sandboxing
+                                // 1. Standard Dashboard Parameter signal
                                 window.parent.postMessage({
-                                    type: "parameter-change", // Change from 'dashboard-parameter' to 'parameter-change'
+                                    type: "parameter-change",
                                     parameterName: "asset",
                                     parameterValue: searchID
+                                }, "*");
+
+                                // 2. Feature Selection signal (for when Type is 'Features')
+                                window.parent.postMessage({
+                                    type: "selection-change",
+                                    selection: [{ 
+                                        attributes: { OBJECTID: searchID, Id: searchID } 
+                                    }]
+                                }, "*");
+                                
+                                // 3. Asset-specific signal
+                                window.parent.postMessage({
+                                    asset: searchID
                                 }, "*");
                             }
                         };
